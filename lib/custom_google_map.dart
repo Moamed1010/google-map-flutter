@@ -21,15 +21,18 @@ class _CustomGoogleMapState extends State<CustomGoogleMap> {
     );
     initMarkers();
     initPolyLines();
+    initPolygons();
   }
 
   Set<Marker> markers = {};
   Set<Polyline> polyLines = {};
+  Set<Polygon> polygons = {};
   late GoogleMapController mapController;
 
   @override
   Widget build(BuildContext context) {
     return GoogleMap(
+      polygons: polygons,
       polylines: polyLines,
       markers: markers,
       onMapCreated: (controller) {
@@ -84,5 +87,21 @@ class _CustomGoogleMapState extends State<CustomGoogleMap> {
     );
 
     polyLines.add(polyline);
+  }
+  
+  void initPolygons() {
+    Polygon polygon = Polygon(
+      polygonId: PolygonId('1'),
+      points: [
+        LatLng(29.969733157675243, 31.211438586822805),
+        LatLng(29.97774817696117, 31.244905075042578),
+        LatLng(29.96674867678075, 31.238999224180258),
+        
+      ],
+      strokeColor: Colors.white,
+      strokeWidth: 4,
+      fillColor: Colors.white38,
+    );
+    polygons.add(polygon);
   }
 }
