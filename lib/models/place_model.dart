@@ -1,5 +1,3 @@
-
-
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 class PlaceModel {
@@ -13,17 +11,22 @@ class PlaceModel {
 List<PlaceModel> placesList = [
   PlaceModel(
     id: 1,
-    name: 'متحف القومي للحضارة المصرية',
-    position: LatLng(30.012435015484797, 31.24736579223232),
+    name: ' أهرامات الجيزة',
+    position: LatLng(29.97894461223206, 31.136203765896152),
   ),
   PlaceModel(
     id: 2,
-    name: 'قلعة صلاح الدين',
-    position: LatLng(30.030458790824664, 31.25884408407316),
+    name: 'مستشفى السلام الدولى',
+    position: LatLng(29.9881632521542, 31.22684097005303),
   ),
   PlaceModel(
     id: 3,
-    name: 'القرية الفرعونية',
-    position: LatLng(29.999631091900408, 31.213514558667814),
+    name: 'قلعة صلاح الدين',
+    position: LatLng(30.03335064263194, 31.259234315351417),
+  ),
+  PlaceModel(
+    id: 4,
+    name: 'نادي الصيد - الدقي',
+    position: LatLng(30.049448859586853, 31.20332749059026),
   ),
 ];
