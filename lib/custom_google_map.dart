@@ -22,16 +22,19 @@ class _CustomGoogleMapState extends State<CustomGoogleMap> {
     initMarkers();
     initPolyLines();
     initPolygons();
+    initCircles();
   }
 
   Set<Marker> markers = {};
   Set<Polyline> polyLines = {};
   Set<Polygon> polygons = {};
+  Set<Circle> circles = {}; // <== Circle
   late GoogleMapController mapController;
 
   @override
   Widget build(BuildContext context) {
     return GoogleMap(
+      circles: circles,
       polygons: polygons,
       polylines: polyLines,
       markers: markers,
@@ -103,5 +106,17 @@ class _CustomGoogleMapState extends State<CustomGoogleMap> {
       fillColor: Colors.white38,
     );
     polygons.add(polygon);
+  }
+  
+  void initCircles() {
+    Circle circle = Circle(
+      circleId: CircleId('1'),
+      center: LatLng(29.97894461223206, 31.136203765896152),
+      radius: 1000,
+      strokeWidth: 4,
+      strokeColor: Colors.white,
+      fillColor: Colors.white38,
+    );
+    circles.add(circle);
   }
 }
