@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:location/location.dart';
 import 'package:training_google_map/google_map_services/circles.dart';
 import 'package:training_google_map/google_map_services/map_style.dart';
 import 'package:training_google_map/google_map_services/markers.dart';
@@ -15,6 +16,7 @@ class CustomGoogleMap extends StatefulWidget {
 
 class _CustomGoogleMapState extends State<CustomGoogleMap> {
   late CameraPosition initialCameraPosition;
+  late Location location;
   Markers markers = Markers();
   Circles circles = Circles();
   Polygons polygons = Polygons();
@@ -23,6 +25,8 @@ class _CustomGoogleMapState extends State<CustomGoogleMap> {
   @override
   void initState() {
     super.initState();
+    location = Location();
+    checkAndRequestLocationService();
 
     initialCameraPosition = CameraPosition(
       zoom: 11.5,
@@ -49,5 +53,22 @@ class _CustomGoogleMapState extends State<CustomGoogleMap> {
       zoomControlsEnabled: false,
       initialCameraPosition: initialCameraPosition,
     );
+  }
+  
+  void checkAndRequestLocationService() async {
+    bool isLocationServiceEnabled = await location.serviceEnabled();
+    if (!isLocationServiceEnabled) {
+     await  location.requestService();
+    }
+    checkAndRequestLocationPermission();
+  }
+  void checkAndRequestLocationPermission() async {
+    var permission = await location.hasPermission();
+    if (permission == PermissionStatus.denied) {
+     permission = await location.requestPermission();
+     if (permission == PermissionStatus.granted) {
+       return;
+     }
+    }
   }
 }
