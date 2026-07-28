@@ -55,20 +55,42 @@ class _CustomGoogleMapState extends State<CustomGoogleMap> {
     );
   }
   
-  void checkAndRequestLocationService() async {
+  Future<void> checkAndRequestLocationService() async {
     bool isLocationServiceEnabled = await location.serviceEnabled();
     if (!isLocationServiceEnabled) {
      await  location.requestService();
     }
     checkAndRequestLocationPermission();
   }
-  void checkAndRequestLocationPermission() async {
+  Future<bool> checkAndRequestLocationPermission() async {
     var permission = await location.hasPermission();
+    if(permission == PermissionStatus.deniedForever){
+      return false;
+    }
     if (permission == PermissionStatus.denied) {
      permission = await location.requestPermission();
      if (permission == PermissionStatus.granted) {
-       return;
+       return false;
+     }
+     else {
+      return true; 
      }
     }
+    return true;
+  }
+  void getLocationData(){
+    location.onLocationChanged.listen((event) {
+      
+      
+    });
+  }
+  void updateMyLocation() async{
+    await checkAndRequestLocationService();
+  var hasPermission =  await checkAndRequestLocationPermission();
+  if(hasPermission){
+    getLocationData();
+  }
+    
+
   }
 }
