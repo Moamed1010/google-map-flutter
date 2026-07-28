@@ -36,10 +36,11 @@ class _CustomGoogleMapState extends State<CustomGoogleMap> {
     polyLines.initPolyLines();
     polygons.initPolygons();
     circles.initCircles();
+    updateMyLocation();
   }
-  late GoogleMapController mapController;
-  @override
 
+   GoogleMapController? mapController;
+  @override
   Widget build(BuildContext context) {
     return GoogleMap(
       circles: circles.circles,
@@ -54,43 +55,47 @@ class _CustomGoogleMapState extends State<CustomGoogleMap> {
       initialCameraPosition: initialCameraPosition,
     );
   }
-  
+
   Future<void> checkAndRequestLocationService() async {
     bool isLocationServiceEnabled = await location.serviceEnabled();
     if (!isLocationServiceEnabled) {
-     await  location.requestService();
+      await location.requestService();
     }
     checkAndRequestLocationPermission();
   }
+
   Future<bool> checkAndRequestLocationPermission() async {
     var permission = await location.hasPermission();
-    if(permission == PermissionStatus.deniedForever){
+    if (permission == PermissionStatus.deniedForever) {
       return false;
     }
     if (permission == PermissionStatus.denied) {
-     permission = await location.requestPermission();
-     if (permission == PermissionStatus.granted) {
-       return false;
-     }
-     else {
-      return true; 
-     }
+      permission = await location.requestPermission();
+      if (permission == PermissionStatus.granted) {
+        return false;
+      } else {
+        return true;
+      }
     }
     return true;
   }
-  void getLocationData(){
+
+  void getLocationData() {
     location.onLocationChanged.listen((event) {
-      
-      
+      var cameraPosition = CameraPosition(
+        target: LatLng(event.latitude, event.longitude),
+      );
+      mapController?.animateCamera(
+        CameraUpdate.newCameraPosition(cameraPosition),
+      );
     });
   }
-  void updateMyLocation() async{
-    await checkAndRequestLocationService();
-  var hasPermission =  await checkAndRequestLocationPermission();
-  if(hasPermission){
-    getLocationData();
-  }
-    
 
+  void updateMyLocation() async {
+    await checkAndRequestLocationService();
+    var hasPermission = await checkAndRequestLocationPermission();
+    if (hasPermission) {
+      getLocationData();
+    }
   }
 }
