@@ -1,11 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:location/location.dart';
-import 'package:training_google_map/google_map_services/circles.dart';
 import 'package:training_google_map/google_map_services/map_style.dart';
-import 'package:training_google_map/google_map_services/markers.dart';
-import 'package:training_google_map/google_map_services/poly_lines.dart';
-import 'package:training_google_map/google_map_services/polygons.dart';
 
 class CustomGoogleMap extends StatefulWidget {
   const CustomGoogleMap({super.key});
@@ -17,36 +13,29 @@ class CustomGoogleMap extends StatefulWidget {
 class _CustomGoogleMapState extends State<CustomGoogleMap> {
   late CameraPosition initialCameraPosition;
   late Location location;
-  Markers markers = Markers();
-  Circles circles = Circles();
-  Polygons polygons = Polygons();
-  PolyLines polyLines = PolyLines();
   MapStyle mapStyle = MapStyle();
+
+  Set<Marker> markers = {};
+  GoogleMapController? mapController;
+
   @override
   void initState() {
     super.initState();
     location = Location();
-    checkAndRequestLocationService();
 
-    initialCameraPosition = CameraPosition(
+    initialCameraPosition = const CameraPosition(
       zoom: 11.5,
       target: LatLng(30.010284030934173, 31.204708198362987),
     );
-    markers.initMarkers();
-    polyLines.initPolyLines();
-    polygons.initPolygons();
-    circles.initCircles();
+
+    // استدعاء دالة تحديث الموقع بمجرد فتح الشاشة
     updateMyLocation();
   }
 
-   GoogleMapController? mapController;
   @override
   Widget build(BuildContext context) {
     return GoogleMap(
-      circles: circles.circles,
-      polygons: polygons.polygons,
-      polylines: polyLines.polyLines,
-      markers: markers.markers,
+      markers: markers,
       onMapCreated: (controller) {
         mapController = controller;
         mapStyle.initMapStyle(controller);
@@ -61,7 +50,6 @@ class _CustomGoogleMapState extends State<CustomGoogleMap> {
     if (!isLocationServiceEnabled) {
       await location.requestService();
     }
-    checkAndRequestLocationPermission();
   }
 
   Future<bool> checkAndRequestLocationPermission() async {
@@ -71,20 +59,35 @@ class _CustomGoogleMapState extends State<CustomGoogleMap> {
     }
     if (permission == PermissionStatus.denied) {
       permission = await location.requestPermission();
-      if (permission == PermissionStatus.granted) {
-        return false;
-      } else {
+      // تم تعديل اللوجيك هنا
+      if (permission == PermissionStatus.granted ||
+          permission == PermissionStatus.grantedLimited) {
         return true;
+      } else {
+        return false;
       }
     }
     return true;
   }
 
   void getLocationData() {
+    location.changeSettings(distanceFilter: 3);
     location.onLocationChanged.listen((event) {
+
       var cameraPosition = CameraPosition(
-        target: LatLng(event.latitude, event.longitude),
+        zoom: 17,
+        target: LatLng(event.latitude!, event.longitude!),
       );
+
+      var myLocationMarker = Marker(
+        markerId: const MarkerId('my_location'),
+        position: LatLng(event.latitude!, event.longitude!),
+      );
+
+      setState(() {
+        markers.add(myLocationMarker);
+      });
+
       mapController?.animateCamera(
         CameraUpdate.newCameraPosition(cameraPosition),
       );
@@ -94,6 +97,7 @@ class _CustomGoogleMapState extends State<CustomGoogleMap> {
   void updateMyLocation() async {
     await checkAndRequestLocationService();
     var hasPermission = await checkAndRequestLocationPermission();
+
     if (hasPermission) {
       getLocationData();
     }
