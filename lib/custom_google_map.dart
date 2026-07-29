@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:location/location.dart';
+import 'package:training_google_map/google_map_services/location_services.dart';
 import 'package:training_google_map/google_map_services/map_style.dart';
 
 class CustomGoogleMap extends StatefulWidget {
@@ -12,7 +13,8 @@ class CustomGoogleMap extends StatefulWidget {
 
 class _CustomGoogleMapState extends State<CustomGoogleMap> {
   late CameraPosition initialCameraPosition;
-  late Location location;
+
+  late LocationServices locationServices;
   MapStyle mapStyle = MapStyle();
 
   Set<Marker> markers = {};
@@ -21,8 +23,8 @@ class _CustomGoogleMapState extends State<CustomGoogleMap> {
   @override
   void initState() {
     super.initState();
-    location = Location();
 
+    locationServices = LocationServices();
     initialCameraPosition = const CameraPosition(
       zoom: 11.5,
       target: LatLng(30.010284030934173, 31.204708198362987),
@@ -45,61 +47,42 @@ class _CustomGoogleMapState extends State<CustomGoogleMap> {
     );
   }
 
-  Future<void> checkAndRequestLocationService() async {
-    bool isLocationServiceEnabled = await location.serviceEnabled();
-    if (!isLocationServiceEnabled) {
-      await location.requestService();
-    }
-  }
-
-  Future<bool> checkAndRequestLocationPermission() async {
-    var permission = await location.hasPermission();
-    if (permission == PermissionStatus.deniedForever) {
-      return false;
-    }
-    if (permission == PermissionStatus.denied) {
-      permission = await location.requestPermission();
-      // تم تعديل اللوجيك هنا
-      if (permission == PermissionStatus.granted ||
-          permission == PermissionStatus.grantedLimited) {
-        return true;
-      } else {
-        return false;
-      }
-    }
-    return true;
-  }
-
-  void getLocationData() {
-    location.changeSettings(distanceFilter: 3);
-    location.onLocationChanged.listen((event) {
-
-      var cameraPosition = CameraPosition(
-        zoom: 17,
-        target: LatLng(event.latitude!, event.longitude!),
-      );
-
-      var myLocationMarker = Marker(
-        markerId: const MarkerId('my_location'),
-        position: LatLng(event.latitude!, event.longitude!),
-      );
-
-      setState(() {
-        markers.add(myLocationMarker);
-      });
-
-      mapController?.animateCamera(
-        CameraUpdate.newCameraPosition(cameraPosition),
-      );
-    });
-  }
 
   void updateMyLocation() async {
-    await checkAndRequestLocationService();
-    var hasPermission = await checkAndRequestLocationPermission();
+    await locationServices.checkAndRequestLocationService();
+    var hasPermission = await locationServices
+        .checkAndRequestLocationPermission();
 
     if (hasPermission) {
-      getLocationData();
+      locationServices.getRealTimeLocationData((event) {
+        CameraPosition cameraPosition = setMyCameraPosition(event);
+
+        setMyLocationMarker(event);
+
+        mapController?.animateCamera(
+          CameraUpdate.newCameraPosition(cameraPosition),
+        );
+      });
     }
+  }
+
+  CameraPosition setMyCameraPosition(LocationData event) {
+     var cameraPosition = CameraPosition(
+      zoom: 17,
+      target: LatLng(event.latitude, event.longitude),
+    );
+    return cameraPosition;
+  }
+
+  void setMyLocationMarker(LocationData event) {
+    
+    var myLocationMarker = Marker(
+      markerId: const MarkerId('my_location'),
+      position: LatLng(event.latitude, event.longitude),
+    );
+    
+    setState(() {
+      markers.add(myLocationMarker);
+    });
   }
 }
