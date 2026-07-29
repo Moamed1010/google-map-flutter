@@ -19,6 +19,7 @@ class _CustomGoogleMapState extends State<CustomGoogleMap> {
 
   Set<Marker> markers = {};
   GoogleMapController? mapController;
+  bool isFirstCall = true;
 
   @override
   void initState() {
@@ -26,7 +27,7 @@ class _CustomGoogleMapState extends State<CustomGoogleMap> {
 
     locationServices = LocationServices();
     initialCameraPosition = const CameraPosition(
-      zoom: 11.5,
+      zoom: 1,
       target: LatLng(30.010284030934173, 31.204708198362987),
     );
 
@@ -47,7 +48,6 @@ class _CustomGoogleMapState extends State<CustomGoogleMap> {
     );
   }
 
-
   void updateMyLocation() async {
     await locationServices.checkAndRequestLocationService();
     var hasPermission = await locationServices
@@ -55,32 +55,36 @@ class _CustomGoogleMapState extends State<CustomGoogleMap> {
 
     if (hasPermission) {
       locationServices.getRealTimeLocationData((event) {
-        CameraPosition cameraPosition = setMyCameraPosition(event);
+        updateMyCamera(event);
 
         setMyLocationMarker(event);
-
-        mapController?.animateCamera(
-          CameraUpdate.newCameraPosition(cameraPosition),
-        );
       });
     }
   }
 
-  CameraPosition setMyCameraPosition(LocationData event) {
-     var cameraPosition = CameraPosition(
-      zoom: 17,
-      target: LatLng(event.latitude, event.longitude),
-    );
-    return cameraPosition;
+  void updateMyCamera(LocationData event) {
+    if (isFirstCall) {
+      CameraPosition cameraPosition = CameraPosition(
+        zoom: 17,
+        target: LatLng(event.latitude, event.longitude),
+      );
+      mapController?.animateCamera(
+        CameraUpdate.newCameraPosition(cameraPosition),
+      );
+      isFirstCall = false;
+    } else {
+      mapController?.animateCamera(
+        CameraUpdate.newLatLng(LatLng(event.latitude, event.longitude)),
+      );
+    }
   }
 
   void setMyLocationMarker(LocationData event) {
-    
     var myLocationMarker = Marker(
       markerId: const MarkerId('my_location'),
       position: LatLng(event.latitude, event.longitude),
     );
-    
+
     setState(() {
       markers.add(myLocationMarker);
     });
